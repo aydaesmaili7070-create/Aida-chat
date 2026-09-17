@@ -45,60 +45,75 @@ button{border:0;border-radius:12px;padding:13px;background:#9d5c91;color:white;f
 </section>
 </div>
 <script>
-const USERS={aida:"1234",friend:"5678"};
-let current="";
-function login(){
- const u=document.getElementById("user").value.trim().toLowerCase(),p=document.getElementById("pass").value;
- if(USERS[u]===p){current=u;document.getElementById("login").style.display="none";document.getElementById("chat").style.display="flex";render();}
- else document.getElementById("error").textContent="نام کاربری یا رمز عبور اشتباه است.";
-}
-function send() {
-  const input = document.getElementById("text"), t = input.value.trim();
-  if (!t) return;
-  db.ref("messages").push({
-    u: current,
-    t: t,
-    at: new Date().toLocaleTimeString("fa-IR", {hour: "2-digit", minute: "2-digit"})
-  });
-  input.value = "";
-}
+<!-- اسکریپت‌های اتصال به فایربیس -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-// دریافت آنلاین پیام‌ها از فایربیس
-db.ref("messages").on("value", (snapshot) => {
-  const box = document.getElementById("messages");
-  box.innerHTML = "";
-  const data = snapshot.val();
-  if (!data) return;
-  Object.values(data).forEach(m => {
-    const d = document.createElement("div");
-    d.className = "msg " + (m.u === current ? "me" : "them");
-    d.innerHTML = "<div>" + escapeHtml(m.t) + "</div><div class='meta'>" + m.u + " • " + m.at + "</div>";
-    box.appendChild(d);
-  });
-  box.scrollTop = box.scrollHeight;
-});
-}
-function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function logout(){current="";document.getElementById("chat").style.display="none";document.getElementById("login").style.display="flex";}
-render();
-</script>
-</body>
-</html><script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
+<script>
+  // تنظیمات فایربیس
   const firebaseConfig = {
-    apiKey: "AIzaSyBUHa2XQVe0CeTO0i3Olrl1kfR9OhrMgIY",
+    apiKey: "AIzaSyBUHa2XQve0CeT00i30lrl1kfR9OhrMgIY",
     authDomain: "aida-chat-15e94.firebaseapp.com",
+    databaseURL: "https://aida-chat-15e94-default-rtdb.firebaseio.com",
     projectId: "aida-chat-15e94",
     storageBucket: "aida-chat-15e94.firebasestorage.app",
     messagingSenderId: "7271128571",
     appId: "1:7271128571:web:8a1edb36db823b7e82bf5e"
   };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const USERS = { aida: "1234", friend: "5678" };
+  let current = "";
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function login() {
+    const u = document.getElementById("user").value.trim().toLowerCase();
+    const p = document.getElementById("pass").value;
+    if (USERS[u] === p) {
+      current = u;
+      document.getElementById("login").style.display = "none";
+      document.getElementById("chat").style.display = "flex";
+      document.getElementById("error").textContent = "";
+    } else {
+      document.getElementById("error").textContent = "نام کاربری یا رمز عبور اشتباه است.";
+    }
+  }
+
+  function logout() {
+    current = "";
+    document.getElementById("chat").style.display = "none";
+    document.getElementById("login").style.display = "flex";
+  }
+
+  function send() {
+    const input = document.getElementById("text");
+    const t = input.value.trim();
+    if (!t || !current) return;
+    db.ref("messages").push({
+      u: current,
+      t: t,
+      at: new Date().toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })
+    });
+    input.value = "";
+  }
+
+  // دریافت لحظه‌ای پیام‌ها
+  db.ref("messages").on("value", (snapshot) => {
+    const box = document.getElementById("messages");
+    box.innerHTML = "";
+    const data = snapshot.val();
+    if (!data) return;
+    Object.values(data).forEach(m => {
+      const d = document.createElement("div");
+      d.className = "msg " + (m.u === current ? "me" : "them");
+      d.innerHTML = "<div>" + escapeHtml(m.t) + "</div><div class='meta'>" + escapeHtml(m.u) + " • " + escapeHtml(m.at) + "</div>";
+      box.appendChild(d);
+    });
+    box.scrollTop = box.scrollHeight;
+  });
 </script>
