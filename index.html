@@ -52,19 +52,31 @@ function login(){
  if(USERS[u]===p){current=u;document.getElementById("login").style.display="none";document.getElementById("chat").style.display="flex";render();}
  else document.getElementById("error").textContent="نام کاربری یا رمز عبور اشتباه است.";
 }
-function send(){
- const input=document.getElementById("text"),t=input.value.trim(); if(!t)return;
- const arr=JSON.parse(localStorage.getItem("aida_messages")||"[]");
- arr.push({u:current,t,at:new Date().toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit"})});
- localStorage.setItem("aida_messages",JSON.stringify(arr)); input.value=""; render();
+function send() {
+  const input = document.getElementById("text"), t = input.value.trim();
+  if (!t) return;
+  db.ref("messages").push({
+    u: current,
+    t: t,
+    at: new Date().toLocaleTimeString("fa-IR", {hour: "2-digit", minute: "2-digit"})
+  });
+  input.value = "";
 }
-function render(){
- const box=document.getElementById("messages");box.innerHTML="";
- JSON.parse(localStorage.getItem("aida_messages")||"[]").forEach(m=>{
-  const d=document.createElement("div");d.className="msg "+(m.u===current?"me":"them");
-  d.innerHTML="<div>"+escapeHtml(m.t)+"</div><div class='meta'>"+m.u+" · "+m.at+"</div>";box.appendChild(d);
- });
- box.scrollTop=box.scrollHeight;
+
+// دریافت آنلاین پیام‌ها از فایربیس
+db.ref("messages").on("value", (snapshot) => {
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  const data = snapshot.val();
+  if (!data) return;
+  Object.values(data).forEach(m => {
+    const d = document.createElement("div");
+    d.className = "msg " + (m.u === current ? "me" : "them");
+    d.innerHTML = "<div>" + escapeHtml(m.t) + "</div><div class='meta'>" + m.u + " • " + m.at + "</div>";
+    box.appendChild(d);
+  });
+  box.scrollTop = box.scrollHeight;
+});
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function logout(){current="";document.getElementById("chat").style.display="none";document.getElementById("login").style.display="flex";}
