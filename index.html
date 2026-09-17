@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aida Chat 💗</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f7eef5;color:#332733}
+.app{max-width:520px;margin:auto;height:100vh;background:#fff;display:flex;flex-direction:column;box-shadow:0 0 30px #0001}
+header{padding:18px 20px;background:#9d5c91;color:white;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:19px;margin:0}header small{opacity:.85}
+#login{padding:28px;display:flex;flex-direction:column;gap:14px;margin:auto;width:100%}
+#login h2{text-align:center}.field{padding:13px;border:1px solid #ddd;border-radius:12px;font-size:15px}
+button{border:0;border-radius:12px;padding:13px;background:#9d5c91;color:white;font-size:15px;cursor:pointer}
+#error{color:#b33;text-align:center;min-height:20px}
+#chat{display:none;flex:1;flex-direction:column;min-height:0}
+#messages{flex:1;overflow:auto;padding:18px;background:#fbf7fa}
+.msg{max-width:78%;padding:10px 13px;margin:7px 0;border-radius:16px;line-height:1.6;word-wrap:break-word}
+.me{margin-right:auto;background:#ead5e6;border-bottom-right-radius:4px}
+.them{margin-left:auto;background:#f0e7ef;border-bottom-left-radius:4px}
+.meta{font-size:10px;opacity:.55;margin-top:3px}
+#composer{display:flex;gap:8px;padding:10px;border-top:1px solid #eee}
+#text{flex:1;border:1px solid #ddd;border-radius:12px;padding:12px;font-size:15px}
+.logout{background:#fff;color:#9d5c91;border:1px solid #ffffff88;padding:7px 10px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><h1>Aida Chat 💗</h1><small>چت خصوصی دونفره</small></div><button class="logout" onclick="logout()">خروج</button></header>
+
+<section id="login">
+<h2>ورود به چت 🔐</h2>
+<input id="user" class="field" placeholder="نام کاربری">
+<input id="pass" class="field" type="password" placeholder="رمز عبور">
+<button onclick="login()">ورود</button>
+<div id="error"></div>
+</section>
+
+<section id="chat">
+<div id="messages"></div>
+<div id="composer">
+<input id="text" placeholder="پیامت رو بنویس..." onkeydown="if(event.key==='Enter')send()">
+<button onclick="send()">ارسال</button>
+</div>
+</section>
+</div>
+<script>
+const USERS={aida:"1234",friend:"5678"};
+let current="";
+function login(){
+ const u=document.getElementById("user").value.trim().toLowerCase(),p=document.getElementById("pass").value;
+ if(USERS[u]===p){current=u;document.getElementById("login").style.display="none";document.getElementById("chat").style.display="flex";render();}
+ else document.getElementById("error").textContent="نام کاربری یا رمز عبور اشتباه است.";
+}
+function send(){
+ const input=document.getElementById("text"),t=input.value.trim(); if(!t)return;
+ const arr=JSON.parse(localStorage.getItem("aida_messages")||"[]");
+ arr.push({u:current,t,at:new Date().toLocaleTimeString("fa-IR",{hour:"2-digit",minute:"2-digit"})});
+ localStorage.setItem("aida_messages",JSON.stringify(arr)); input.value=""; render();
+}
+function render(){
+ const box=document.getElementById("messages");box.innerHTML="";
+ JSON.parse(localStorage.getItem("aida_messages")||"[]").forEach(m=>{
+  const d=document.createElement("div");d.className="msg "+(m.u===current?"me":"them");
+  d.innerHTML="<div>"+escapeHtml(m.t)+"</div><div class='meta'>"+m.u+" · "+m.at+"</div>";box.appendChild(d);
+ });
+ box.scrollTop=box.scrollHeight;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function logout(){current="";document.getElementById("chat").style.display="none";document.getElementById("login").style.display="flex";}
+render();
+</script>
+</body>
+</html>
